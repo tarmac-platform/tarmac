@@ -1,0 +1,21 @@
+# Local dev cluster. Free, identical to EKS on camera.
+# Control-plane carries host port 80/443 -> container, so ingress-nginx (week 5) works.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: tarmac
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      - containerPort: 80
+        hostPort: 80
+        protocol: TCP
+      - containerPort: 443
+        hostPort: 443
+        protocol: TCP
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+  - role: worker

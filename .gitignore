@@ -1,0 +1,21 @@
+# terraform state / vars — never commit credentials or local state
+terraform.tfvars
+*.tfstate
+*.tfstate.*
+.terraform/
+crash.log
+
+# secrets
+*.pem
+*.key
+bootstrap/argocd/deploy-key*
+kubeconfig
+
+# node
+node_modules/
+
+# os / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
