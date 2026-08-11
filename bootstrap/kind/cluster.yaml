@@ -3,8 +3,12 @@
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 name: tarmac
+# ponytail: pinned to k8s 1.32 because this Docker Desktop VM runs cgroup v1,
+# which containerd 2.x (k8s >=1.33) dropped. Once the VM is on cgroup v2
+# (.wslconfig systemd / Docker Desktop upgrade), unpin and let kind pick latest.
 nodes:
   - role: control-plane
+    image: kindest/node:v1.32.11
     extraPortMappings:
       - containerPort: 80
         hostPort: 80
@@ -19,3 +23,4 @@ nodes:
           kubeletExtraArgs:
             node-labels: "ingress-ready=true"
   - role: worker
+    image: kindest/node:v1.32.11
