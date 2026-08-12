@@ -8,7 +8,7 @@ KIND_CONFIG := bootstrap/kind/cluster.yaml
 TARMAC_CONFIG_DIR := ../tarmac-config
 ROOT_APP := $(TARMAC_CONFIG_DIR)/clusters/local/root-app.yaml
 
-.PHONY: up down recreate bootstrap verify tf-apply tf-destroy demo
+.PHONY: up down recreate bootstrap verify tf-apply tf-destroy dev-up dev-down dev-ip dev-ssh demo
 
 ## Create the kind cluster (free, local)
 up:
@@ -38,6 +38,19 @@ tf-apply:
 
 tf-destroy:
 	cd bootstrap/terraform && terraform destroy
+
+## EC2 dev box (Backstage). STOP not destroy to keep the EBS state.
+dev-up:
+	cd bootstrap/terraform && terraform apply
+
+dev-down:
+	aws ec2 stop-instances --instance-ids $$(cd bootstrap/terraform && terraform output -raw dev_instance_id)
+
+dev-ip:
+	cd bootstrap/terraform && terraform output -raw dev_public_ip
+
+dev-ssh:
+	ssh -i $$HOME/Downloads/devops-raj362.pem ubuntu@$$(cd bootstrap/terraform && terraform output -raw dev_public_ip)
 
 demo:
 	@echo "See docs/demo-script.md (added week 7)."

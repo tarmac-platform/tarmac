@@ -1,3 +1,7 @@
+locals {
+  tags = { Project = "tarmac" }
+}
+
 provider "aws" {
   region = "ap-south-1"
 }
