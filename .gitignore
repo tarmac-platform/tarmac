@@ -10,6 +10,7 @@ crash.log
 *.key
 bootstrap/argocd/deploy-key*
 kubeconfig
+secrets/
 
 # node
 node_modules/
