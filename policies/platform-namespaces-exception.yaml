@@ -1,0 +1,31 @@
+apiVersion: kyverno.io/v2
+kind: PolicyException
+metadata:
+  name: platform-namespaces
+  namespace: kyverno
+  annotations:
+    policies.kyverno.io/title: Exempt platform components from workload policies
+    policies.kyverno.io/description: >-
+      Third-party platform charts (ingress-nginx, ArgoCD, Kyverno itself) ship
+      without tenant workload conventions (cost-center/team labels, non-root,
+      resource limits). Tenant policies target tenant services; platform
+      infrastructure is exempted here so the platform can bootstrap itself.
+spec:
+  exceptions:
+    - policyName: require-labels
+      ruleNames:
+        - require-cost-center-label
+        - require-team-label
+    - policyName: require-non-root
+      ruleNames:
+        - require-run-as-non-root
+    - policyName: require-resource-limits
+      ruleNames:
+        - require-requests-and-limits
+  match:
+    any:
+      - resources:
+          namespaces:
+            - argocd
+            - ingress-nginx
+            - kyverno
