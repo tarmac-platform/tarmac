@@ -26,6 +26,16 @@ spec:
           title: Description
           type: string
           description: Short description of what the service does
+        costCenter:
+          title: Cost Center
+          type: string
+          description: Cost center code for spend attribution
+          default: eng
+        team:
+          title: Team
+          type: string
+          description: Owning team name
+          default: platform
     - title: Repository
       required:
         - repoUrl
@@ -49,6 +59,8 @@ spec:
         values:
           name: ${{ parameters.name }}
           description: ${{ parameters.description }}
+          costCenter: ${{ parameters.costCenter }}
+          team: ${{ parameters.team }}
 
     - id: publish
       name: Publish to GitHub

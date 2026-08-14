@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: ${{ values.name }}-preview
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+    - pullRequest:
+        github:
+          owner: tarmac-platform
+          repo: ${{ values.name }}
+          appSecretName: github-app-creds
+        requeueAfterSeconds: 30
+  template:
+    metadata:
+      name: ${{ values.name }}-pr-{{.number}}
+      namespace: argocd
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/tarmac-platform/${{ values.name }}.git
+        targetRevision: '{{.head_sha}}'
+        path: k8s
+        kustomize:
+          patches:
+            - target:
+                kind: Ingress
+                name: ${{ values.name }}
+              patch: |
+                - op: replace
+                  path: /spec/rules/0/host
+                  value: ${{ values.name }}-pr-{{.number}}.127.0.0.1.sslip.io
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: ${{ values.name }}-pr-{{.number}}
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

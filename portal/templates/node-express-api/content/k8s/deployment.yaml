@@ -13,7 +13,12 @@ spec:
     metadata:
       labels:
         app: ${{ values.name }}
+        cost-center: ${{ values.costCenter }}
+        team: ${{ values.team }}
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
       containers:
         - name: app
           image: node:22-alpine
