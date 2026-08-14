@@ -31,4 +31,4 @@ jobs:
           sudo mv kyverno /usr/local/bin/
 
       - name: Run policy test suite
-        run: ./scripts/policy-test.sh
+        run: bash ./scripts/policy-test.sh
