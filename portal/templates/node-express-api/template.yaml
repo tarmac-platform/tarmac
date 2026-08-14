@@ -39,10 +39,6 @@ spec:
               - github.com
             allowedOwners:
               - tarmac-platform
-            requestUserCredentials:
-              secrets:
-                - token
-              required: false
 
   steps:
     - id: fetch-base
