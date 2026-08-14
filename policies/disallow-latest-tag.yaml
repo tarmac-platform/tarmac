@@ -22,6 +22,9 @@ spec:
                 - DaemonSet
                 - Job
                 - CronJob
+              operations:
+                - CREATE
+                - UPDATE
       validate:
         cel:
           expressions:

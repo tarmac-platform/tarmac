@@ -23,6 +23,9 @@ spec:
                 - DaemonSet
                 - Job
                 - CronJob
+              operations:
+                - CREATE
+                - UPDATE
       validate:
         message: >-
           deployments must have a `cost-center` label on the pod template.
@@ -42,6 +45,9 @@ spec:
                 - DaemonSet
                 - Job
                 - CronJob
+              operations:
+                - CREATE
+                - UPDATE
       validate:
         message: >-
           deployments must have a `team` label on the pod template.

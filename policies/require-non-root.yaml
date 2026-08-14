@@ -22,6 +22,9 @@ spec:
                 - DaemonSet
                 - Job
                 - CronJob
+              operations:
+                - CREATE
+                - UPDATE
       validate:
         message: >-
           pods must set `runAsNonRoot: true` in their securityContext.
