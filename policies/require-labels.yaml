@@ -1,0 +1,53 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-labels
+  annotations:
+    policies.kyverno.io/title: Require cost-center and team labels
+    policies.kyverno.io/category: Best Practices
+    policies.kyverno.io/description: >-
+      Every workload must carry `cost-center` and `team` labels so the
+      platform can attribute spend and ownership. Unlabeled workloads are
+      untraceable once the owner moves on.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-cost-center-label
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+                - StatefulSet
+                - DaemonSet
+                - Job
+                - CronJob
+      validate:
+        message: >-
+          deployments must have a `cost-center` label on the pod template.
+        pattern:
+          spec:
+            template:
+              metadata:
+                labels:
+                  cost-center: "?*"
+    - name: require-team-label
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+                - StatefulSet
+                - DaemonSet
+                - Job
+                - CronJob
+      validate:
+        message: >-
+          deployments must have a `team` label on the pod template.
+        pattern:
+          spec:
+            template:
+              metadata:
+                labels:
+                  team: "?*"

@@ -1,0 +1,32 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-latest-tag
+  annotations:
+    policies.kyverno.io/title: Disallow latest tag
+    policies.kyverno.io/category: Supply Chain Security
+    policies.kyverno.io/description: >-
+      Image tags must be pinned to a semver version or digest. `:latest` is
+      non-reproducible: redeploys can silently pick up new images.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-image-tag
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+                - StatefulSet
+                - DaemonSet
+                - Job
+                - CronJob
+      validate:
+        cel:
+          expressions:
+            - expression: >-
+                object.spec.template.spec.containers.all(c,
+                  !c.image.endsWith(':latest'))
+              message: >-
+                image tags must be pinned to a version or digest, not `latest`.

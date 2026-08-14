@@ -8,7 +8,7 @@ KIND_CONFIG := bootstrap/kind/cluster.yaml
 TARMAC_CONFIG_DIR := ../tarmac-config
 ROOT_APP := $(TARMAC_CONFIG_DIR)/clusters/local/root-app.yaml
 
-.PHONY: up down recreate bootstrap verify tf-apply tf-destroy dev-up dev-down dev-ip dev-ssh demo
+.PHONY: up down recreate bootstrap verify tf-apply tf-destroy dev-up dev-down dev-ip dev-ssh demo policy-test
 
 ## Create the kind cluster (free, local)
 up:
@@ -51,6 +51,11 @@ dev-ip:
 
 dev-ssh:
 	ssh -i $$HOME/Downloads/devops-raj362.pem ubuntu@$$(cd bootstrap/terraform && terraform output -raw dev_public_ip)
+
+## Run the Kyverno policy test suite (CI gate). Pass fixtures must pass,
+## fail fixtures must fail. Exit nonzero on any mismatch.
+policy-test:
+	@./scripts/policy-test.sh
 
 demo:
 	@echo "See docs/demo-script.md (added week 7)."

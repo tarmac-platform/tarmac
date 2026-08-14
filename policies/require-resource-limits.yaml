@@ -1,0 +1,38 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-resource-limits
+  annotations:
+    policies.kyverno.io/title: Require CPU/memory requests and limits
+    policies.kyverno.io/category: Best Practices
+    policies.kyverno.io/description: >-
+      Every container must declare CPU and memory requests and limits so the
+      scheduler can bin-pack and the platform can contain noisy neighbours.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-requests-and-limits
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+                - StatefulSet
+                - DaemonSet
+                - Job
+                - CronJob
+      validate:
+        cel:
+          expressions:
+            - expression: >-
+                object.spec.template.spec.containers.all(c,
+                  has(c.resources) &&
+                  has(c.resources.requests) &&
+                  has(c.resources.limits) &&
+                  'cpu' in c.resources.requests &&
+                  'memory' in c.resources.requests &&
+                  'cpu' in c.resources.limits &&
+                  'memory' in c.resources.limits)
+              message: >-
+                every container must set CPU and memory requests AND limits.
