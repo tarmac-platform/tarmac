@@ -60,6 +60,26 @@ spec:
         repoVisibility: private
         allowAutoMerge: false
 
+    - id: fetch-argocd
+      name: Generate ArgoCD manifest
+      action: fetch:template
+      input:
+        url: ./argocd
+        targetPath: ./argocd-output
+        values:
+          name: ${{ parameters.name }}
+
+    - id: create-pr
+      name: Open deploy PR
+      action: publish:github:pull-request
+      input:
+        repoUrl: github.com?owner=tarmac-platform&repo=tarmac-config
+        branchName: deploy/${{ parameters.name }}
+        title: Deploy ${{ parameters.name }}
+        description: Adds ArgoCD Application for ${{ parameters.name }}
+        sourcePath: ./argocd-output
+        targetPath: clusters/local
+
     - id: register
       name: Register in catalog
       action: catalog:register
