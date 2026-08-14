@@ -115,6 +115,12 @@ catalog:
       rules:
         - allow: [Template]
 
+    # Tarmac node-express-api service template
+    - type: file
+      target: ../../templates/node-express-api/template.yaml
+      rules:
+        - allow: [Template]
+
     # Local example organizational data
     - type: file
       target: ../../examples/org.yaml
