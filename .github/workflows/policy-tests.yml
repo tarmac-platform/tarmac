@@ -1,0 +1,34 @@
+name: policy-tests
+
+on:
+  push:
+    paths:
+      - 'policies/**'
+      - 'scripts/policy-test.sh'
+      - '.github/workflows/policy-tests.yml'
+  pull_request:
+    paths:
+      - 'policies/**'
+      - 'scripts/policy-test.sh'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install kyverno CLI
+        run: |
+          set -euo pipefail
+          # Match the chart's major release line; bump if policies need newer CLI.
+          KYVERNO_VERSION=v1.13.4
+          curl -sSLo kyverno.tar.gz \
+            "https://github.com/kyverno/kyverno/releases/download/${KYVERNO_VERSION}/kyverno-cli_${KYVERNO_VERSION}_linux_x86_64.tar.gz"
+          tar -xzf kyverno.tar.gz kyverno
+          sudo mv kyverno /usr/local/bin/
+
+      - name: Run policy test suite
+        run: ./scripts/policy-test.sh
