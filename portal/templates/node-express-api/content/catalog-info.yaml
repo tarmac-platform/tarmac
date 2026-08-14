@@ -2,9 +2,8 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: ${{ values.name | dump }}
-  description: ${{ values.description | dump }}
   annotations:
-    github.com/project-slug: ${{ values.repoUrl | replace('https://github.com/', '') | replace('.git', '') }}
+    github.com/project-slug: tarmac-platform/${{ values.name }}
 spec:
   type: service
   owner: user:guest
