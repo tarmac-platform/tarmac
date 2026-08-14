@@ -3,13 +3,15 @@ locals {
 }
 
 provider "aws" {
-  region = "ap-south-1"
+  region  = "ap-south-1"
+  profile = "cloudsentry"
 }
 
 # Budgets is a global service; pin its provider to us-east-1.
 provider "aws" {
-  alias  = "budgets"
-  region = "us-east-1"
+  alias   = "budgets"
+  region  = "us-east-1"
+  profile = "cloudsentry"
 }
 
 resource "aws_budgets_budget" "tarmac" {

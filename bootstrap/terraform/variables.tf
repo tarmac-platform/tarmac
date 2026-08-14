@@ -18,13 +18,13 @@ variable "operator_cidr" {
 variable "dev_instance_type" {
   description = "EC2 type for the Backstage dev box"
   type        = string
-  default     = "t3.large"
+  default     = "m7i-flex.large"
 }
 
 variable "key_name" {
   description = "Existing AWS key pair for the dev box"
   type        = string
-  default     = "devops-raj362"
+  default     = "tarmac-dev"
 }
 
 variable "dev_disk_gb" {

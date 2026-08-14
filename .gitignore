@@ -24,3 +24,4 @@ Thumbs.db
 bootstrap/terraform/.mirror/
 
 *.tfplan
+tfplan
