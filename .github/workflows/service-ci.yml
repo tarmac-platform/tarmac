@@ -13,9 +13,6 @@ on:
       DOCKERHUB_TOKEN:
         required: true
 
-permissions:
-  contents: write
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -55,7 +52,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: aquasecurity/trivy-action@0.28.0
+      - uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ inputs.image-name }}:${{ needs.build.outputs.image-tag }}
           severity: CRITICAL
@@ -83,8 +80,6 @@ jobs:
             "https://github.com/kyverno/kyverno/releases/download/${KYVERNO_VERSION}/kyverno-cli_${KYVERNO_VERSION}_linux_x86_64.tar.gz"
           tar -xzf kyverno.tar.gz kyverno
           sudo mv kyverno /usr/local/bin/
-          curl -sSLo /usr/local/bin/kustomize \
-            "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.6.0/kustomize_v5.6.0_linux_amd64.tar.gz"
           cd /tmp && curl -sSL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.6.0/kustomize_v5.6.0_linux_amd64.tar.gz" | tar xz
           sudo mv /tmp/kustomize /usr/local/bin/
       - name: Validate manifests against policies
@@ -101,10 +96,10 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs: [build, scan, policy-check]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          token: ${{ github.token }}
       - name: Install kustomize
         run: |
           cd /tmp && curl -sSL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.6.0/kustomize_v5.6.0_linux_amd64.tar.gz" | tar xz

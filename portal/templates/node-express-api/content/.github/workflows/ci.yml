@@ -7,6 +7,9 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   ci:
     uses: tarmac-platform/tarmac/.github/workflows/service-ci.yml@main
