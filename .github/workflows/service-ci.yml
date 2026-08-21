@@ -52,6 +52,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: ${{ inputs.image-name }}:${{ needs.build.outputs.image-tag }}
@@ -59,6 +60,7 @@ jobs:
           exit-code: '1'
           format: table
           ignore-unfixed: true
+          trivyignores: .trivyignore
         env:
           TRIVY_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           TRIVY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
