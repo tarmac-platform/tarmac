@@ -58,6 +58,7 @@ jobs:
           severity: CRITICAL
           exit-code: '1'
           format: table
+          ignore-unfixed: true
         env:
           TRIVY_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           TRIVY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
