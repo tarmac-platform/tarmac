@@ -66,7 +66,7 @@ jobs:
           TRIVY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
 
   policy-check:
-    needs: build
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -87,13 +87,27 @@ jobs:
           sudo mv /tmp/kustomize /usr/local/bin/
       - name: Validate manifests against policies
         run: |
+          set +e
           kustomize build k8s > /tmp/rendered.yaml
-          kyverno apply \
+          OUTPUT=$(kyverno apply \
             tarmac/policies/require-labels.yaml \
             tarmac/policies/require-non-root.yaml \
             tarmac/policies/require-resource-limits.yaml \
             tarmac/policies/disallow-latest-tag.yaml \
-            --resource /tmp/rendered.yaml
+            --resource /tmp/rendered.yaml 2>&1)
+          EXIT_CODE=$?
+          echo "$OUTPUT"
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "### Policy Check Failed" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "$OUTPUT" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "### Policy Check Passed" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "$OUTPUT" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
 
   deploy:
     if: github.ref == 'refs/heads/main'
