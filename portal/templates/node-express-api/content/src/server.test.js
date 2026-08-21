@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
-const { createApp } = require('./app');
+const { createApp } = require('./server');
 
 test('GET / returns service name', async () => {
   const app = createApp('${{ values.name }}');

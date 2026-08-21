@@ -1,0 +1,17 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['k8s/**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    uses: tarmac-platform/tarmac/.github/workflows/service-ci.yml@main
+    with:
+      image-name: rajvasoya06/${{ '${{' }} github.event.repository.name }}
+    secrets:
+      DOCKERHUB_USERNAME: ${{ '${{' }} secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ '${{' }} secrets.DOCKERHUB_TOKEN }}

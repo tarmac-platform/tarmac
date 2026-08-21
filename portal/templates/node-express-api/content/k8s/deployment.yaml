@@ -21,17 +21,12 @@ spec:
         runAsUser: 1000
       containers:
         - name: app
-          image: node:22-alpine
-          imagePullPolicy: IfNotPresent
-          command:
-            - node
-            - -e
-            - "require('http').createServer((req,res)=>{res.setHeader('Content-Type','application/json');res.end(JSON.stringify({name:'${{ values.name }}',status:'ok'}))}).listen(process.env.PORT||3000)"
+          image: rajvasoya06/${{ values.name }}:init
           ports:
             - containerPort: 3000
           readinessProbe:
             httpGet:
-              path: /
+              path: /health
               port: 3000
             initialDelaySeconds: 5
             periodSeconds: 5

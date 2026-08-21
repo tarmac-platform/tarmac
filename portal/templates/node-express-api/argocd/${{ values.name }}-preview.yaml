@@ -23,6 +23,8 @@ spec:
         targetRevision: '{{.head_sha}}'
         path: k8s
         kustomize:
+          images:
+            - rajvasoya06/${{ values.name }}:{{.head_sha}}
           patches:
             - target:
                 kind: Ingress
