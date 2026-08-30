@@ -8,6 +8,60 @@ server:
     # local dev only: show plaintext admin password on first login (week 0-6)
     admin.enabled: "true"
 
+configs:
+  cm:
+    application.resourceTrackingMethod: annotation
+    resource.customizations: |
+      "*.upbound.io/*":
+        health.lua: |
+          health_status = { status = "Progressing", message = "Provisioning ..." }
+          if obj.status == nil or next(obj.status) == nil then
+            health_status.status = "Healthy"
+            health_status.message = "Resource is up-to-date."
+            return health_status
+          end
+          if obj.status.conditions ~= nil then
+            for _, condition in ipairs(obj.status.conditions) do
+              if condition.status == "False" and (condition.type == "Synced" or condition.type == "LastAsyncOperation") then
+                health_status.status = "Degraded"
+                health_status.message = condition.message
+                return health_status
+              end
+              if condition.status == "True" and (condition.type == "Ready" or condition.type == "Healthy" or condition.type == "Installed" or condition.type == "Established") then
+                health_status.status = "Healthy"
+                health_status.message = "Resource is up-to-date."
+              end
+            end
+          end
+          return health_status
+      "*.crossplane.io/*":
+        health.lua: |
+          health_status = { status = "Progressing", message = "Provisioning ..." }
+          if obj.status == nil or next(obj.status) == nil then
+            health_status.status = "Healthy"
+            health_status.message = "Resource is up-to-date."
+            return health_status
+          end
+          if obj.status.conditions ~= nil then
+            for _, condition in ipairs(obj.status.conditions) do
+              if condition.status == "False" and (condition.type == "Synced" or condition.type == "LastAsyncOperation") then
+                health_status.status = "Degraded"
+                health_status.message = condition.message
+                return health_status
+              end
+              if condition.status == "True" and (condition.type == "Ready" or condition.type == "Healthy" or condition.type == "Installed" or condition.type == "Established" or condition.type == "ValidPipeline") then
+                health_status.status = "Healthy"
+                health_status.message = "Resource is up-to-date."
+              end
+            end
+          end
+          return health_status
+    resource.exclusions: |
+      - apiGroups:
+          - "*"
+        kinds:
+          - ProviderConfigUsage
+
 repoServer:
   replicas: 1
   resources:
