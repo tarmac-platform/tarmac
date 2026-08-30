@@ -1,0 +1,170 @@
+# Composition: one ServiceInfra claim -> namespace + IAM role + RDS + DB secret.
+# RDS is deletionPolicy: Orphan on purpose — deleting a claim must never destroy
+# a data-bearing database; teardown is an explicit operator action.
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: serviceinfra-aws-postgres
+spec:
+  compositeTypeRef:
+    apiVersion: platform.tarmac.dev/v1alpha1
+    kind: ServiceInfra
+  mode: Pipeline
+  pipeline:
+    - step: compose-infra
+      functionRef:
+        name: function-go-templating
+      input:
+        apiVersion: gotemplating.fn.crossplane.io/v1beta1
+        kind: GoTemplate
+        source: Inline
+        inline:
+          template: |
+            {{ $name := .observed.composite.resource.spec.serviceName }}
+            {{ $ns := printf "tarmac-%s" $name }}
+            {{ $team := .observed.composite.resource.spec.team }}
+            {{ $cc := .observed.composite.resource.spec.costCenter }}
+            {{ $dbEnabled := .observed.composite.resource.spec.enableDatabase | default true }}
+
+            {{ $rdsRes := getComposedResource . "rds" }}
+            {{ $rdsStatus := get $rdsRes.status "atProvider" | default dict }}
+            {{ $endpoint := get $rdsStatus "endpoint" | default "" }}
+            {{ $dbState := get $rdsStatus "status" | default "" }}
+            {{ $roleArn := get (get (getComposedResource . "role").status "atProvider" | default dict) "arn" | default "" }}
+
+            # Stable per-service master password: generate once, reuse after (data is base64)
+            {{ $master := getComposedResource . "master-password-secret" }}
+            {{ $pwB64 := get (get $master.resource "data" | default dict) "password" | default "" }}
+            {{ $pw := "" }}
+            {{ if $pwB64 }}{{ $pw = $pwB64 | b64dec }}{{ else }}{{ $pw = randAlphaNum 24 }}{{ end }}
+            ---
+            {{ if $dbEnabled }}
+            # Master password secret lives in crossplane-system; the app-facing
+            # secret below copies it into the service namespace.
+            apiVersion: v1
+            kind: Secret
+            metadata:
+              namespace: crossplane-system
+              name: db-master-{{ $name }}
+              annotations:
+                gotemplating.fn.crossplane.io/composition-resource-name: master-password-secret
+            stringData:
+              password: {{ $pw | quote }}
+              username: tarmacadmin
+            ---
+            # RDS instance. Orphaned on claim delete — see file header.
+            apiVersion: rds.aws.upbound.io/v1beta3
+            kind: Instance
+            metadata:
+              name: tarmac-{{ $name }}
+              annotations:
+                gotemplating.fn.crossplane.io/composition-resource-name: rds
+                {{ if eq $dbState "available" }}gotemplating.fn.crossplane.io/ready: "True"{{ end }}
+            spec:
+              deletionPolicy: Orphan
+              forProvider:
+                region: ap-south-1
+                engine: postgres
+                # ponytail: no engineVersion pin — latest available; pin when a service needs it
+                identifier: tarmac-{{ $name }}
+                instanceClass: {{ if eq .observed.composite.resource.spec.databaseSize "medium" }}db.t3.small{{ else }}db.t3.micro{{ end }}
+                allocatedStorage: 20
+                maxAllocatedStorage: 50
+                dbName: tarmac
+                username: tarmacadmin
+                passwordSecretRef:
+                  name: db-master-{{ $name }}
+                  key: password
+                  namespace: crossplane-system
+                publiclyAccessible: false
+                skipFinalSnapshot: true
+                backupRetentionPeriod: 0
+                tags:
+                  team: {{ $team }}
+                  cost-center: {{ $cc }}
+                  managed-by: tarmac-platform
+              providerConfigRef:
+                name: default
+            ---
+            # App-facing DB secret in the service namespace
+            apiVersion: kubernetes.crossplane.io/v1alpha2
+            kind: Object
+            metadata:
+              annotations:
+                gotemplating.fn.crossplane.io/composition-resource-name: db-secret
+                {{ if eq $dbState "available" }}gotemplating.fn.crossplane.io/ready: "True"{{ end }}
+            spec:
+              forProvider:
+                manifest:
+                  apiVersion: v1
+                  kind: Secret
+                  metadata:
+                    namespace: {{ $ns }}
+                    name: {{ $name }}-db
+                    labels:
+                      team: {{ $team }}
+                      cost-center: {{ $cc }}
+                  stringData:
+                    endpoint: {{ $endpoint | quote }}
+                    port: "5432"
+                    database: tarmac
+                    username: tarmacadmin
+                    password: {{ $pw | quote }}
+              providerConfigRef:
+                name: default
+            {{ end }}
+            ---
+            # Service namespace, stamped with tenant labels (Kyverno requires them)
+            apiVersion: kubernetes.crossplane.io/v1alpha2
+            kind: Object
+            metadata:
+              annotations:
+                gotemplating.fn.crossplane.io/composition-resource-name: namespace
+            spec:
+              forProvider:
+                manifest:
+                  apiVersion: v1
+                  kind: Namespace
+                  metadata:
+                    name: {{ $ns }}
+                    labels:
+                      team: {{ $team }}
+                      cost-center: {{ $cc }}
+                      app.kubernetes.io/managed-by: crossplane
+              providerConfigRef:
+                name: default
+            ---
+            # Per-service IAM role. Trusts the account for now; EKS IRSA takes
+            # over as trust principal at week 12.
+            apiVersion: iam.aws.upbound.io/v1beta1
+            kind: Role
+            metadata:
+              name: tarmac-{{ $name }}
+              annotations:
+                gotemplating.fn.crossplane.io/composition-resource-name: role
+            spec:
+              forProvider:
+                assumeRolePolicy: |
+                  {
+                    "Version": "2012-10-17",
+                    "Statement": [{
+                      "Effect": "Allow",
+                      "Principal": { "AWS": "arn:aws:iam::081382613682:root" },
+                      "Action": "sts:AssumeRole"
+                    }]
+                  }
+                tags:
+                  team: {{ $team }}
+                  cost-center: {{ $cc }}
+                  managed-by: tarmac-platform
+              providerConfigRef:
+                name: default
+            ---
+            # Report status back to the claim
+            apiVersion: platform.tarmac.dev/v1alpha1
+            kind: ServiceInfra
+            status:
+              namespace: {{ $ns }}
+              dbEndpoint: {{ $endpoint | quote }}
+              dbSecretRef: {{ if $dbEnabled }}{{ printf "%s/%s-db" $ns $name | quote }}{{ else }}""{{ end }}
+              roleArn: {{ $roleArn | quote }}

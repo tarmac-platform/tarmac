@@ -1,0 +1,67 @@
+# ServiceInfra: the platform's one-stop infra claim for a service.
+# One resource provisions the service's namespace, IAM role, and RDS database.
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: serviceinfras.platform.tarmac.dev
+spec:
+  # Cluster-scoped: this claim provisions a brand-new tenant namespace plus
+  # AWS resources, which are inherently cluster-scoped APIs.
+  scope: Cluster
+  group: platform.tarmac.dev
+  names:
+    kind: ServiceInfra
+    plural: serviceinfras
+    shortNames:
+      - svcinfra
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                serviceName:
+                  description: Unique service name; prefixes all created resources.
+                  type: string
+                  pattern: '^[a-z][a-z0-9-]{2,20}$'
+                team:
+                  description: Owning team, stamped onto every resource.
+                  type: string
+                costCenter:
+                  description: Cost center code for spend attribution.
+                  type: string
+                databaseSize:
+                  description: RDS instance size tier.
+                  type: string
+                  enum:
+                    - small
+                    - medium
+                  default: small
+                enableDatabase:
+                  description: Set false to provision only namespace + role.
+                  type: boolean
+                  default: true
+              required:
+                - serviceName
+                - team
+                - costCenter
+            status:
+              type: object
+              properties:
+                namespace:
+                  description: Namespace created for this service.
+                  type: string
+                dbEndpoint:
+                  description: RDS connection endpoint (empty if no database).
+                  type: string
+                dbSecretRef:
+                  description: Secret holding DB credentials, in the service namespace.
+                  type: string
+                roleArn:
+                  description: IAM role ARN created for this service.
+                  type: string

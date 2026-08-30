@@ -1,0 +1,8 @@
+# In-cluster auth for provider-kubernetes (manages Namespace + Secret objects).
+apiVersion: kubernetes.crossplane.io/v1alpha1
+kind: ProviderConfig
+metadata:
+  name: default
+spec:
+  credentials:
+    source: InjectedIdentity

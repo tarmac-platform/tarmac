@@ -1,0 +1,13 @@
+# AWS auth for Crossplane providers. References a Secret created out-of-band
+# (never in git). IRSA replaces this at week 12 on EKS.
+apiVersion: aws.upbound.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: default
+spec:
+  credentials:
+    source: Secret
+    secretRef:
+      namespace: crossplane-system
+      name: aws-credentials
+      key: creds
