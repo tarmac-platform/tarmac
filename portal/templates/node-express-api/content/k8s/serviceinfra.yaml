@@ -1,0 +1,10 @@
+apiVersion: platform.tarmac.dev/v1alpha1
+kind: ServiceInfra
+metadata:
+  name: ${{ values.name }}
+spec:
+  serviceName: ${{ values.name }}
+  team: ${{ values.team }}
+  costCenter: ${{ values.costCenter }}
+  enableDatabase: ${{ values.enableDatabase }}
+  databaseSize: ${{ values.databaseSize }}

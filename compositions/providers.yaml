@@ -24,9 +24,18 @@ spec:
 apiVersion: pkg.crossplane.io/v1
 kind: Provider
 metadata:
+  name: upbound-provider-aws-s3
+spec:
+  package: xpkg.upbound.io/upbound/provider-aws-s3:v2.7.1
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
   name: crossplane-contrib-provider-kubernetes
 spec:
   package: xpkg.upbound.io/crossplane-contrib/provider-kubernetes:v1.3.0
+  runtimeConfigRef:
+    name: provider-kubernetes-runtime
 ---
 apiVersion: pkg.crossplane.io/v1
 kind: Function

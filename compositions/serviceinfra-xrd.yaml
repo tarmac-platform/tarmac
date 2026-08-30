@@ -1,5 +1,6 @@
 # ServiceInfra: the platform's one-stop infra claim for a service.
-# One resource provisions the service's namespace, IAM role, and RDS database.
+# One resource provisions the service's namespace, IAM role, S3 bucket, and
+# optional RDS database.
 apiVersion: apiextensions.crossplane.io/v2
 kind: CompositeResourceDefinition
 metadata:
@@ -43,9 +44,9 @@ spec:
                     - medium
                   default: small
                 enableDatabase:
-                  description: Set false to provision only namespace + role.
+                  description: Set true to provision an RDS database.
                   type: boolean
-                  default: true
+                  default: false
               required:
                 - serviceName
                 - team
@@ -64,4 +65,7 @@ spec:
                   type: string
                 roleArn:
                   description: IAM role ARN created for this service.
+                  type: string
+                bucketName:
+                  description: Globally unique S3 bucket created for this service.
                   type: string

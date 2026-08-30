@@ -1,0 +1,28 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: serviceinfra-required-fields
+  annotations:
+    policies.kyverno.io/title: Require ServiceInfra ownership fields
+    policies.kyverno.io/category: Platform Governance
+    policies.kyverno.io/description: Service infrastructure must identify its owner and cost center.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-serviceinfra-ownership
+      match:
+        any:
+          - resources:
+              kinds:
+                - platform.tarmac.dev/v1alpha1/ServiceInfra
+              operations:
+                - CREATE
+                - UPDATE
+      validate:
+        message: ServiceInfra must specify serviceName, team, and costCenter.
+        pattern:
+          spec:
+            serviceName: "?*"
+            team: "?*"
+            costCenter: "?*"

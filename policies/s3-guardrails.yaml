@@ -1,0 +1,30 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: s3-guardrails
+  annotations:
+    policies.kyverno.io/title: Block public S3 access
+    policies.kyverno.io/category: Cost and Security
+    policies.kyverno.io/description: Every composed S3 bucket must explicitly block all public access paths.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-s3-public-access-block
+      match:
+        any:
+          - resources:
+              kinds:
+                - s3.aws.upbound.io/v1beta1/BucketPublicAccessBlock
+              operations:
+                - CREATE
+                - UPDATE
+      validate:
+        message: S3 public access must be blocked in all four modes.
+        pattern:
+          spec:
+            forProvider:
+              blockPublicAcls: true
+              blockPublicPolicy: true
+              ignorePublicAcls: true
+              restrictPublicBuckets: true

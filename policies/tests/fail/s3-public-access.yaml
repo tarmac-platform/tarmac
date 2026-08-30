@@ -1,0 +1,11 @@
+apiVersion: s3.aws.upbound.io/v1beta1
+kind: BucketPublicAccessBlock
+metadata:
+  name: tarmac-public-access
+spec:
+  forProvider:
+    region: ap-south-1
+    blockPublicAcls: true
+    blockPublicPolicy: false
+    ignorePublicAcls: true
+    restrictPublicBuckets: true

@@ -1,0 +1,9 @@
+apiVersion: rds.aws.upbound.io/v1beta3
+kind: Instance
+metadata:
+  name: tarmac-expensive
+spec:
+  forProvider:
+    region: ap-south-1
+    instanceClass: db.r6g.4xlarge
+    publiclyAccessible: false

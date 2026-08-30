@@ -1,0 +1,10 @@
+apiVersion: platform.tarmac.dev/v1alpha1
+kind: ServiceInfra
+metadata:
+  name: payments
+spec:
+  serviceName: payments
+  team: platform
+  costCenter: eng
+  enableDatabase: false
+  databaseSize: small

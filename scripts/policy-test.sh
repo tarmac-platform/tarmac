@@ -11,6 +11,9 @@ POLICIES=(
   "$ROOT/policies/disallow-latest-tag.yaml"
   "$ROOT/policies/require-non-root.yaml"
   "$ROOT/policies/require-labels.yaml"
+  "$ROOT/policies/serviceinfra-required-fields.yaml"
+  "$ROOT/policies/rds-guardrails.yaml"
+  "$ROOT/policies/s3-guardrails.yaml"
 )
 PASS_DIR="$ROOT/policies/tests/pass"
 FAIL_DIR="$ROOT/policies/tests/fail"
@@ -20,7 +23,7 @@ failures=0
 for fixture in "$PASS_DIR"/*.yaml; do
   name="$(basename "$fixture")"
   result="$(kyverno apply "${POLICIES[@]}" --resource "$fixture" 2>&1)"
-  if echo "$result" | grep -q "^pass: 5, fail: 0"; then
+  if echo "$result" | grep -qE "fail: 0"; then
     echo "PASS: $name"
   else
     echo "FAIL: $name (expected all rules to pass)"
@@ -32,7 +35,7 @@ done
 for fixture in "$FAIL_DIR"/*.yaml; do
   name="$(basename "$fixture")"
   result="$(kyverno apply "${POLICIES[@]}" --resource "$fixture" 2>&1)"
-  if echo "$result" | grep -qE "fail: [1-9]"; then
+  if echo "$result" | grep -qE "failed: [1-9]|fail: [1-9]"; then
     echo "PASS: $name (correctly rejected)"
   else
     echo "FAIL: $name (expected rejection)"

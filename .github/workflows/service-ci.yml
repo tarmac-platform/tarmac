@@ -94,6 +94,9 @@ jobs:
             tarmac/policies/require-non-root.yaml \
             tarmac/policies/require-resource-limits.yaml \
             tarmac/policies/disallow-latest-tag.yaml \
+            tarmac/policies/serviceinfra-required-fields.yaml \
+            tarmac/policies/rds-guardrails.yaml \
+            tarmac/policies/s3-guardrails.yaml \
             --resource /tmp/rendered.yaml 2>&1)
           EXIT_CODE=$?
           echo "$OUTPUT"

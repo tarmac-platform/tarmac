@@ -36,6 +36,19 @@ spec:
           type: string
           description: Owning team name
           default: platform
+        enableDatabase:
+          title: Provision a database
+          type: boolean
+          description: Create a private PostgreSQL RDS instance for this service
+          default: true
+        databaseSize:
+          title: Database size
+          type: string
+          description: RDS instance size (only used when database provisioning is enabled)
+          enum:
+            - small
+            - medium
+          default: small
     - title: Repository
       required:
         - repoUrl
@@ -61,6 +74,8 @@ spec:
           description: ${{ parameters.description }}
           costCenter: ${{ parameters.costCenter }}
           team: ${{ parameters.team }}
+          enableDatabase: ${{ parameters.enableDatabase }}
+          databaseSize: ${{ parameters.databaseSize }}
 
     - id: publish
       name: Publish to GitHub

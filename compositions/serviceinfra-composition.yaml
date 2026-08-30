@@ -1,4 +1,4 @@
-# Composition: one ServiceInfra claim -> namespace + IAM role + RDS + DB secret.
+# Composition: one ServiceInfra claim -> namespace + IAM role + S3 + optional RDS.
 # RDS is deletionPolicy: Orphan on purpose — deleting a claim must never destroy
 # a data-bearing database; teardown is an explicit operator action.
 apiVersion: apiextensions.crossplane.io/v1
@@ -21,10 +21,11 @@ spec:
         inline:
           template: |
             {{ $name := .observed.composite.resource.spec.serviceName }}
-            {{ $ns := printf "tarmac-%s" $name }}
+            {{ $ns := $name }}
+            {{ $bucketName := printf "tarmac-%s-081382613682" $name }}
             {{ $team := .observed.composite.resource.spec.team }}
             {{ $cc := .observed.composite.resource.spec.costCenter }}
-            {{ $dbEnabled := .observed.composite.resource.spec.enableDatabase | default true }}
+            {{ $dbEnabled := eq .observed.composite.resource.spec.enableDatabase true }}
 
             {{ $rdsRes := getComposedResource . "rds" }}
             {{ $rdsStatus := get $rdsRes.status "atProvider" | default dict }}
@@ -114,6 +115,42 @@ spec:
                 name: default
             {{ end }}
             ---
+            # Globally unique, private S3 bucket for service-owned objects.
+            apiVersion: s3.aws.upbound.io/v1beta2
+            kind: Bucket
+            metadata:
+              name: {{ $bucketName }}
+              annotations:
+                gotemplating.fn.crossplane.io/composition-resource-name: bucket
+            spec:
+              forProvider:
+                region: ap-south-1
+                tags:
+                  team: {{ $team }}
+                  cost-center: {{ $cc }}
+                  managed-by: tarmac-platform
+              providerConfigRef:
+                name: default
+            ---
+            # Explicitly block every public access path.
+            apiVersion: s3.aws.upbound.io/v1beta1
+            kind: BucketPublicAccessBlock
+            metadata:
+              name: {{ $bucketName }}-public-access
+              annotations:
+                gotemplating.fn.crossplane.io/composition-resource-name: bucket-public-access
+            spec:
+              forProvider:
+                region: ap-south-1
+                bucketRef:
+                  name: {{ $bucketName }}
+                blockPublicAcls: true
+                blockPublicPolicy: true
+                ignorePublicAcls: true
+                restrictPublicBuckets: true
+              providerConfigRef:
+                name: default
+            ---
             # Service namespace, stamped with tenant labels (Kyverno requires them)
             apiVersion: kubernetes.crossplane.io/v1alpha2
             kind: Object
@@ -168,3 +205,4 @@ spec:
               dbEndpoint: {{ $endpoint | quote }}
               dbSecretRef: {{ if $dbEnabled }}{{ printf "%s/%s-db" $ns $name | quote }}{{ else }}""{{ end }}
               roleArn: {{ $roleArn | quote }}
+              bucketName: {{ $bucketName | quote }}

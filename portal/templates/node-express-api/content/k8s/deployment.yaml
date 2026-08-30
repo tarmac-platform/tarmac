@@ -22,6 +22,10 @@ spec:
       containers:
         - name: app
           image: rajvasoya06/${{ values.name }}:init
+          envFrom:
+            - secretRef:
+                name: ${{ values.name }}-db
+                optional: true
           ports:
             - containerPort: 3000
           readinessProbe:

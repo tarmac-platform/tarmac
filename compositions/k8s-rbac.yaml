@@ -15,7 +15,7 @@ metadata:
   name: provider-kubernetes-admin
 subjects:
   - kind: ServiceAccount
-    name: crossplane-contrib-provider-kubernetes-17261e579786
+    name: provider-kubernetes
     namespace: crossplane-system
 roleRef:
   kind: ClusterRole

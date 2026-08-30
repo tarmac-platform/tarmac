@@ -1,0 +1,43 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: rds-guardrails
+  annotations:
+    policies.kyverno.io/title: Restrict RDS provisioning
+    policies.kyverno.io/category: Cost and Security
+    policies.kyverno.io/description: RDS claims may only use approved small instance classes and private networking.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-approved-rds-class
+      match:
+        any:
+          - resources:
+              kinds:
+                - rds.aws.upbound.io/v1beta3/Instance
+              operations:
+                - CREATE
+                - UPDATE
+      validate:
+        cel:
+          expressions:
+            - expression: >-
+                has(object.spec.forProvider.instanceClass) &&
+                object.spec.forProvider.instanceClass in ['db.t3.micro', 'db.t3.small']
+              message: RDS instanceClass must be db.t3.micro or db.t3.small.
+    - name: block-public-rds
+      match:
+        any:
+          - resources:
+              kinds:
+                - rds.aws.upbound.io/v1beta3/Instance
+              operations:
+                - CREATE
+                - UPDATE
+      validate:
+        pattern:
+          spec:
+            forProvider:
+              publiclyAccessible: false
+        message: RDS instances must be private.

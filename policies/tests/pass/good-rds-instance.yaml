@@ -1,0 +1,9 @@
+apiVersion: rds.aws.upbound.io/v1beta3
+kind: Instance
+metadata:
+  name: tarmac-payments
+spec:
+  forProvider:
+    region: ap-south-1
+    instanceClass: db.t3.micro
+    publiclyAccessible: false
