@@ -39,7 +39,11 @@ spec:
                 - local-path-storage
       verifyImages:
         - imageReferences:
+            # ponytail: Kyverno matches against the normalized reference
+            # (docker.io/...), so the registry host is required — the bare
+            # form is kept for manifests that pin it literally.
             - 'rajvasoya06/*'
+            - 'docker.io/rajvasoya06/*'
           attestors:
             - entries:
                 - keyless:
