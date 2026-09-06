@@ -3,6 +3,8 @@
 #
 # Pass fixtures must pass EVERY rule, fail fixtures must fail at least one.
 # Uses `kyverno apply` against static manifests; no cluster required.
+# NOTE: policies/verify-image-signatures.yaml is intentionally excluded — it
+# needs live registry/Rekor access and only enforces at cluster admission.
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

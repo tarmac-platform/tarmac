@@ -1,0 +1,49 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: verify-image-signatures
+  annotations:
+    policies.kyverno.io/title: Require signed tenant images
+    policies.kyverno.io/category: Supply Chain Security
+    policies.kyverno.io/description: >-
+      Tenant images must carry a keyless cosign signature from a
+      tarmac-platform GitHub Actions workflow. Unsigned images are rejected
+      at admission; matched images are mutated to digest pins.
+spec:
+  validationFailureAction: Enforce
+  # ponytail: verifyImages is admission-only and needs live registry/Rekor, so
+  # this policy is intentionally absent from scripts/policy-test.sh and the CI
+  # kyverno-apply gate. CI covers it via the cosign sign job instead.
+  background: false
+  rules:
+    - name: require-image-signature
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              operations:
+                - CREATE
+                - UPDATE
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - argocd
+                - crossplane-system
+                - ingress-nginx
+                - kyverno
+                - kube-system
+                - kube-public
+                - kube-node-lease
+                - local-path-storage
+      verifyImages:
+        - imageReferences:
+            - 'rajvasoya06/*'
+          attestors:
+            - entries:
+                - keyless:
+                    subject: 'https://github.com/tarmac-platform/*'
+                    issuer: 'https://token.actions.githubusercontent.com'
+                    rekor:
+                      url: https://rekor.sigstore.dev
