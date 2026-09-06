@@ -9,6 +9,9 @@ on:
 
 permissions:
   contents: write
+  # ponytail: id-token must be granted by the CALLER — a reusable workflow
+  # cannot mint OIDC tokens for cosign keyless signing on its own.
+  id-token: write
 
 jobs:
   ci:
