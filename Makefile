@@ -64,11 +64,11 @@ demo:
 ## Re-check operator_cidr in terraform/terraform.tfvars before every apply; the
 ## API endpoint is locked to that IP and your ISP rotates it.
 eks-up:
-	cd terraform && terraform init && terraform apply
+	cd terraform && AWS_PROFILE=cloudsentry terraform init && AWS_PROFILE=cloudsentry terraform apply
 
 eks-down:
-	cd terraform && terraform destroy
+	cd terraform && AWS_PROFILE=cloudsentry terraform destroy
 
 ## Write the kubeconfig entry for the burst cluster.
 eks-kubeconfig:
-	cd terraform && $$(terraform output -raw configure_kubectl)
+	cd terraform && AWS_PROFILE=cloudsentry $$(terraform output -raw configure_kubectl)

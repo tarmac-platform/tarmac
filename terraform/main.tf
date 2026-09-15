@@ -3,9 +3,8 @@
 # Budget + Backstage dev box live in bootstrap/terraform (separate state root):
 # they outlive the cluster and should not be destroyed with it.
 #
-# Local state by default so `terraform plan` works with zero setup. Flip to the
-# S3 + DynamoDB backend by uncommenting the block below after running
-# bootstrap/terraform to create the bucket/table (or `aws s3api create-bucket`).
+# S3 backend with native lockfile (no DynamoDB table — `use_lockfile` replaces it).
+# Bucket: tarmac-tfstate-081382613682 (versioned, AES256, public-block).
 
 terraform {
   required_version = ">= 1.5"
@@ -20,13 +19,14 @@ terraform {
     }
   }
 
-  # backend "s3" {
-  #   bucket       = "tarmac-tfstate-081382613682"
-  #   key          = "platform/terraform.tfstate"
-  #   region       = "ap-south-1"
-  #   encrypt      = true
-  #   use_lockfile = true
-  # }
+  backend "s3" {
+    bucket       = "tarmac-tfstate-081382613682"
+    key          = "platform/terraform.tfstate"
+    region       = "ap-south-1"
+    profile      = "cloudsentry"
+    encrypt      = true
+    use_lockfile = true
+  }
 }
 
 provider "aws" {
