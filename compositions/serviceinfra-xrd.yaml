@@ -5,6 +5,8 @@ apiVersion: apiextensions.crossplane.io/v2
 kind: CompositeResourceDefinition
 metadata:
   name: serviceinfras.platform.tarmac.dev
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   # Cluster-scoped: this claim provisions a brand-new tenant namespace plus
   # AWS resources, which are inherently cluster-scoped APIs.

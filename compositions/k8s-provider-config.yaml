@@ -1,8 +1,11 @@
 # In-cluster auth for provider-kubernetes (manages Namespace + Secret objects).
+# Wave 2: this CRD only exists after the provider-kubernetes package installs.
 apiVersion: kubernetes.crossplane.io/v1alpha1
 kind: ProviderConfig
 metadata:
   name: default
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   credentials:
     source: InjectedIdentity

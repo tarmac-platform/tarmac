@@ -5,6 +5,8 @@ apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
   name: serviceinfra-aws-postgres
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   compositeTypeRef:
     apiVersion: platform.tarmac.dev/v1alpha1
