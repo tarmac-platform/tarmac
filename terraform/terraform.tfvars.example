@@ -1,0 +1,14 @@
+# Copy to terraform.tfvars (gitignored) and fill in before `make eks-up`.
+#
+# operator_cidr: your current public IP as a /32. The EKS API endpoint is
+# locked to it. Re-check before every apply — ISPs rotate it.
+#   PowerShell: (Invoke-RestMethod https://checkip.amazonaws.com).Trim()
+operator_cidr = "203.0.113.10/32"
+
+# Overridable defaults (usually leave as-is):
+# region              = "ap-south-1"
+# aws_profile         = "cloudsentry"
+# cluster_name        = "tarmac"
+# kubernetes_version  = "1.32"
+# node_instance_types = ["t3.medium"]
+# node_desired_size   = 2

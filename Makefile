@@ -8,7 +8,7 @@ KIND_CONFIG := bootstrap/kind/cluster.yaml
 TARMAC_CONFIG_DIR := ../tarmac-config
 ROOT_APP := $(TARMAC_CONFIG_DIR)/clusters/local/root-app.yaml
 
-.PHONY: up down recreate bootstrap verify tf-apply tf-destroy dev-up dev-down dev-ip dev-ssh demo policy-test
+.PHONY: up down recreate bootstrap verify tf-apply tf-destroy dev-up dev-down dev-ip dev-ssh demo policy-test eks-up eks-down eks-kubeconfig
 
 ## Create the kind cluster (free, local)
 up:
@@ -59,3 +59,16 @@ policy-test:
 
 demo:
 	@echo "See docs/demo-script.md (added week 7)."
+
+## EKS burst cluster (weeks 12-14). Costs money while up — destroy after recording.
+## Re-check operator_cidr in terraform/terraform.tfvars before every apply; the
+## API endpoint is locked to that IP and your ISP rotates it.
+eks-up:
+	cd terraform && terraform init && terraform apply
+
+eks-down:
+	cd terraform && terraform destroy
+
+## Write the kubeconfig entry for the burst cluster.
+eks-kubeconfig:
+	cd terraform && $$(terraform output -raw configure_kubectl)
