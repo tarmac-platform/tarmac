@@ -6,6 +6,8 @@ metadata:
   name: upbound-provider-family-aws
 spec:
   package: xpkg.upbound.io/upbound/provider-family-aws:v2.7.1
+  runtimeConfigRef:
+    name: provider-aws-family-irsa
 ---
 apiVersion: pkg.crossplane.io/v1
 kind: Provider
@@ -13,6 +15,8 @@ metadata:
   name: upbound-provider-aws-rds
 spec:
   package: xpkg.upbound.io/upbound/provider-aws-rds:v2.7.1
+  runtimeConfigRef:
+    name: provider-aws-rds-irsa
 ---
 apiVersion: pkg.crossplane.io/v1
 kind: Provider
@@ -20,6 +24,8 @@ metadata:
   name: upbound-provider-aws-iam
 spec:
   package: xpkg.upbound.io/upbound/provider-aws-iam:v2.7.1
+  runtimeConfigRef:
+    name: provider-aws-iam-irsa
 ---
 apiVersion: pkg.crossplane.io/v1
 kind: Provider
@@ -27,6 +33,8 @@ metadata:
   name: upbound-provider-aws-s3
 spec:
   package: xpkg.upbound.io/upbound/provider-aws-s3:v2.7.1
+  runtimeConfigRef:
+    name: provider-aws-s3-irsa
 ---
 apiVersion: pkg.crossplane.io/v1
 kind: Provider

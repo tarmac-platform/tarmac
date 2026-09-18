@@ -1,0 +1,42 @@
+# AWS providers assume tarmac-crossplane via IRSA. One runtime config per
+# provider (each gets its own SA annotated with the role). Replaces the old
+# imperative SA-annotation one-liner — this survives provider upgrades.
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: provider-aws-family-irsa
+spec:
+  serviceAccountTemplate:
+    metadata:
+      annotations:
+        eks.amazonaws.com/role-arn: arn:aws:iam::081382613682:role/tarmac-crossplane
+---
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: provider-aws-iam-irsa
+spec:
+  serviceAccountTemplate:
+    metadata:
+      annotations:
+        eks.amazonaws.com/role-arn: arn:aws:iam::081382613682:role/tarmac-crossplane
+---
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: provider-aws-rds-irsa
+spec:
+  serviceAccountTemplate:
+    metadata:
+      annotations:
+        eks.amazonaws.com/role-arn: arn:aws:iam::081382613682:role/tarmac-crossplane
+---
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: provider-aws-s3-irsa
+spec:
+  serviceAccountTemplate:
+    metadata:
+      annotations:
+        eks.amazonaws.com/role-arn: arn:aws:iam::081382613682:role/tarmac-crossplane
