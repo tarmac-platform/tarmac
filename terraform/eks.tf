@@ -38,7 +38,6 @@ module "eks" {
         }
       })
     }
-    eks-pod-identity-agent = {}
   }
 
   # ELB creation is blocked on this account (AWS Support ticket pending), so
