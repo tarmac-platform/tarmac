@@ -138,3 +138,37 @@ resource "aws_iam_role_policy_attachment" "dns_manager" {
   role       = aws_iam_role.dns_manager.name
   policy_arn = aws_iam_policy.dns_manager.arn
 }
+
+# AWS Load Balancer Controller: EKS 1.32 has no in-tree service LB provisioner,
+# so ingress-nginx's `type: LoadBalancer` + NLB annotations need this controller
+# to actually create the NLB. IRSA-authenticated; policy is the upstream v2.9.2
+# recommended policy (vendored as lbc-iam-policy.json).
+resource "aws_iam_policy" "lb_controller" {
+  name   = "tarmac-lb-controller"
+  policy = file("${path.module}/lbc-iam-policy.json")
+  tags   = local.tags
+}
+
+resource "aws_iam_role" "lb_controller" {
+  name = "tarmac-lb-controller"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Federated = module.eks.oidc_provider_arn }
+      Action    = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "${local.oidc_issuer}:aud" : "sts.amazonaws.com"
+          "${local.oidc_issuer}:sub" : "system:serviceaccount:kube-system:aws-load-balancer-controller"
+        }
+      }
+    }]
+  })
+  tags = local.tags
+}
+
+resource "aws_iam_role_policy_attachment" "lb_controller" {
+  role       = aws_iam_role.lb_controller.name
+  policy_arn = aws_iam_policy.lb_controller.arn
+}

@@ -54,3 +54,7 @@ output "oidc_issuer_url" {
   description = "Bake into the ServiceInfra composition's IAM trust (re-check after any cluster rebuild)."
   value       = module.eks.cluster_oidc_issuer_url
 }
+output "lb_controller_role_arn" {
+  description = "Annotate the aws-load-balancer-controller SA with this."
+  value       = aws_iam_role.lb_controller.arn
+}
