@@ -24,9 +24,20 @@ module "eks" {
   enable_cluster_creator_admin_permissions = true
 
   addons = {
-    coredns                = {}
-    kube-proxy             = {}
-    vpc-cni                = { before_compute = true }
+    coredns    = {}
+    kube-proxy = {}
+    # Prefix delegation lifts the per-node pod cap: t3.medium goes from ~17 pods
+    # (1 ENI-IP per pod) to ~110 (/28 prefixes). Without this the full platform
+    # stack fills both nodes and Crossplane provider pods wedge in Pending.
+    vpc-cni = {
+      before_compute = true
+      configuration_values = jsonencode({
+        env = {
+          ENABLE_PREFIX_DELEGATION = "true"
+          WARM_PREFIX_TARGET       = "1"
+        }
+      })
+    }
     eks-pod-identity-agent = {}
   }
 
