@@ -41,25 +41,47 @@ module "eks" {
     eks-pod-identity-agent = {}
   }
 
-  eks_managed_node_groups = {
-    default = {
-      ami_type       = "AL2023_x86_64_STANDARD"
-      instance_types = var.node_instance_types
-      capacity_type  = "SPOT"
+  # ELB creation is blocked on this account (AWS Support ticket pending), so
+  # ingress-nginx runs in hostPort mode on the nodes. Open 80/443 to the
+  # internet on the node SG so preview URLs resolve. Revert to the NLB path
+  # (and drop these rules) once the account can create load balancers.
+  node_security_group_additional_rules = {
+    ingress_http = {
+      description = "ingress-nginx hostPort HTTP"
+      protocol    = "tcp"
+      from_port   = 80
+      to_port     = 80
+      type        = "ingress"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+    ingress_https = {
+      description = "ingress-nginx hostPort HTTPS"
+      protocol    = "tcp"
+      from_port   = 443
+      to_port     = 443
+      type        = "ingress"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  }
 
-      min_size     = var.node_min_size
-      max_size     = var.node_max_size
-      desired_size = var.node_desired_size
+  eks_managed_node_groups = { default = {
+    ami_type       = "AL2023_x86_64_STANDARD"
+    instance_types = var.node_instance_types
+    capacity_type  = "SPOT"
 
-      # Nodes land in public subnets (no NAT) and need public IPs to reach
-      # ECR/STS/sigstore. The module's node SG governs inbound.
-      subnet_ids = module.vpc.public_subnets
+    min_size     = var.node_min_size
+    max_size     = var.node_max_size
+    desired_size = var.node_desired_size
 
-      labels = {
-        role = "tenant"
-      }
+    # Nodes land in public subnets (no NAT) and need public IPs to reach
+    # ECR/STS/sigstore. The module's node SG governs inbound.
+    subnet_ids = module.vpc.public_subnets
 
-      tags = merge(local.tags, { Name = "${local.name}-node" })
+    labels = {
+      role = "tenant"
+    }
+
+    tags = merge(local.tags, { Name = "${local.name}-node" })
     }
   }
 
