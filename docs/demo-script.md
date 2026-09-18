@@ -129,3 +129,85 @@ curl -H "Host: demo-run-pr-1.127.0.0.1.sslip.io" http://localhost
   shows a chat window)
 - cosign image signing / verifyImages (week 11)
 - Real DNS/TLS with `*.preview.kwikflo.in` (week 13)
+
+---
+
+# EKS Burst Demo (~2 min) — the real-infra recording
+
+This is the Week 14 "money" recording: the same platform on a real EKS cluster
+provisioning real AWS resources with real DNS + TLS. Record while the cluster
+is live (teardown destroys the URL).
+
+## Pre-flight
+
+- [ ] `make eks-kubeconfig` done; `kubectl get nodes` Ready
+- [ ] `operator_cidr` matches your current IP (ISP rotates it — re-`apply` if kubectl times out)
+- [ ] EIP associated to the labeled ingress node; `https://demo.preview.kwikflo.in/health` returns `200`
+- [ ] Backstage portal open (`http://localhost:3000` via SSH tunnel)
+- [ ] ArgoCD UI forwarded; Grafana port-forward ready
+
+## Shots
+
+### 1. Self-service scaffold with a database (~20s)
+
+- Portal → Create → Node.js Express API
+- name=`termac-demoo`, **Provision a database = true**, size=`small`
+- Create → watch scaffolder steps go green (repo + PR to tarmac-config)
+
+### 2. CI: build → sign → scan → policy → deploy (~15s)
+
+- Open the new repo → Actions → the reusable `service-ci` run
+- Highlight the **sign** job: cosign keyless via GitHub OIDC
+- All jobs green
+
+### 3. Real cloud infra via Crossplane IRSA (~20s)
+
+```bash
+kubectl get serviceinfra termac-demoo
+kubectl get managed          # RDS instance, S3 bucket, IAM role — all READY
+```
+
+- Call out: provisioned by assuming an EKS OIDC role — **no static AWS keys**
+
+### 4. Signed-image enforcement (~20s)
+
+```bash
+# Deployed pod runs a digest-pinned, signed image
+kubectl get pod -n termac-demoo -o jsonpath='{.items[0].spec.containers[0].image}'
+```
+
+- Optional: apply an unsigned image and show Kyverno reject it at admission:
+  ```
+  verify-image-signatures: failed to verify image ... no signatures found
+  ```
+
+### 5. Public HTTPS with a real cert (~20s)
+
+- Browser → `https://demo.preview.kwikflo.in` → `{"name":"termac-demoo","status":"ok"}`
+- Click the padlock → Let's Encrypt cert, valid
+```bash
+kubectl get certificate -n termac-demoo   # READY=True
+```
+
+### 6. Observability (~15s)
+
+- Grafana → the 4 Tarmac dashboards (provisioning, policy, previews, cost)
+- Prometheus targets all up
+
+### 7. Teardown to $0 (~10s, can cut to post)
+
+```bash
+kubectl delete serviceinfra termac-demoo   # then delete orphaned RDS + S3 + IAM
+aws ec2 release-address --allocation-id <eip>   # stop EIP idle charge
+make eks-down                               # destroy the cluster
+```
+
+- End on the Cost Explorer $0 screenshot.
+
+## Recording notes
+
+- The EKS API is IP-locked; if kubectl stalls mid-take, your ISP rotated the
+  IP — bump `operator_cidr` and `terraform apply` before recording.
+- Spot nodes can roll: if ingress goes `Pending`, re-label a node
+  `tarmac.dev/ingress=true` and re-associate the EIP (one command each).
+- **Revoke any Docker Hub token** shown or used during setup before publishing.
