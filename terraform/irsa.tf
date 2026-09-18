@@ -28,7 +28,7 @@ resource "aws_iam_policy" "crossplane_scoped" {
       {
         Sid      = "S3ServiceBuckets"
         Effect   = "Allow"
-        Action   = ["s3:CreateBucket", "s3:DeleteBucket", "s3:ListBucket", "s3:GetBucketLocation", "s3:GetBucket*", "s3:GetAccelerateConfiguration", "s3:PutBucketTagging", "s3:PutBucketPublicAccessBlock", "s3:DeleteBucketPublicAccessBlock"]
+        Action   = ["s3:CreateBucket", "s3:DeleteBucket", "s3:ListBucket", "s3:GetBucketLocation", "s3:GetBucket*", "s3:GetAccelerateConfiguration", "s3:GetLifecycleConfiguration", "s3:PutLifecycleConfiguration", "s3:GetEncryptionConfiguration", "s3:PutEncryptionConfiguration", "s3:GetReplicationConfiguration", "s3:PutBucketTagging", "s3:PutBucketPublicAccessBlock", "s3:DeleteBucketPublicAccessBlock", "s3:PutBucketAcl", "s3:PutBucketVersioning", "s3:GetBucketVersioning"]
         Resource = "arn:aws:s3:::tarmac-*"
       },
       {

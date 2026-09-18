@@ -55,7 +55,7 @@ variable "node_max_size" {
 variable "operator_cidr" {
   description = "Operator public IP (CIDR) allowed to reach the EKS API endpoint. Re-check before every apply: it changes with your ISP."
   type        = string
-  default     = "152.58.62.175/32"
+  default     = "152.58.35.69/32"
 }
 
 
